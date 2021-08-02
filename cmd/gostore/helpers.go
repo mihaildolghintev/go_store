@@ -2,13 +2,15 @@ package main
 
 import (
 	"bufio"
-	"github.com/briandowns/spinner"
-	"golang.org/x/text/encoding/charmap"
 	"io/ioutil"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/briandowns/spinner"
+	"golang.org/x/text/encoding/charmap"
 )
 
 func (app *application) parseFile(filename string) []Product {
@@ -91,8 +93,8 @@ func createProduct(productLine string) Product {
 	product.ID = line[0]
 	product.Barcodes = []string{line[1]}
 	product.Title = line[3]
-	product.Plu = line[7]
-	product.Cash = line[2]
+	product.Plu, _ = strconv.Atoi(line[7])
+	product.Cash, _ = strconv.Atoi(line[2])
 
 	if line[7] == "0" {
 		product.IsWeight = false

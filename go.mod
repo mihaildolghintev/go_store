@@ -10,4 +10,5 @@ require (
 	github.com/cheggaaa/pb/v3 v3.0.8
 	golang.org/x/text v0.3.6
 	google.golang.org/api v0.50.0
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

@@ -1,16 +1,19 @@
 package main
 
 import (
-	"cloud.google.com/go/firestore"
 	"context"
-	firebase "firebase.google.com/go"
 	"flag"
-	"github.com/briandowns/spinner"
-	"github.com/cheggaaa/pb/v3"
-	"google.golang.org/api/option"
+	"io/ioutil"
 	"log"
 	"os"
 	"time"
+
+	"cloud.google.com/go/firestore"
+	firebase "firebase.google.com/go"
+	"github.com/briandowns/spinner"
+	"github.com/cheggaaa/pb/v3"
+	"google.golang.org/api/option"
+	"gopkg.in/yaml.v2"
 )
 
 type application struct {
@@ -24,22 +27,31 @@ type application struct {
 type config struct {
 	newProductsFile string
 	oldProductsFile string
+	storeName       string `yaml:"storeName"`
 	opt             option.ClientOption
 }
 
 func main() {
 
 	config := &config{}
+	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 
 	flag.StringVar(&config.newProductsFile, "products", "itemfull.txt", "File with products")
 	fbkey := flag.String("key", "fb_key.json", "Firebase json key")
+
+	f, err := ioutil.ReadFile("config.yml")
+	if err != nil {
+		logger.Fatal("Cant find config.yml")
+	}
+	err = yaml.Unmarshal(f, &config.storeName)
+	if err != nil {
+		logger.Fatal("Cant parse config")
+	}
 
 	flag.Parse()
 
 	config.oldProductsFile = "itemfull_old.txt"
 	config.opt = option.WithCredentialsFile(*fbkey)
-
-	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 
 	fbApp, err := firebase.NewApp(context.Background(), nil, config.opt)
 	if err != nil {
@@ -65,7 +77,7 @@ func main() {
 		bar := pb.StartNew(len(products))
 
 		for _, product := range products {
-			_, err = app.firestore.Collection("products").Doc(product.ID).Set(context.Background(), product)
+			_, err = app.firestore.Collection("stores").Doc(config.storeName).Collection("products").Doc(product.ID).Set(context.Background(), product)
 			if err != nil {
 				app.logger.Println(err)
 			}
